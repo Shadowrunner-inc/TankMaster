@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "TankBarrel.h"
 #include "TankAimingComponet.h"
 
 // Sets default values for this component's properties
@@ -12,14 +12,16 @@ UTankAimingComponet::UTankAimingComponet()
 
 	// ...
 }
-void UTankAimingComponet::SetBarrelReference(UStaticMeshComponent* BarrelToSet)
+void UTankAimingComponet::SetBarrelReference(UTankBarrel* BarrelToSet)
 {
 	Barrel = BarrelToSet;
 }
 
 void UTankAimingComponet::AimAt(FVector HitLocation, float LaunchSpeed) {
 	
-	if (!Barrel) { return; }
+	if (!Barrel) { 
+		UE_LOG(LogTemp, Warning, TEXT("No Barrel in aiming componet!"));
+		return; }
 
 	FVector OutLaunchVelocity(0);
 	FVector StartLocation = Barrel->GetSocketLocation(FName("Projectile"));
@@ -38,8 +40,17 @@ void UTankAimingComponet::AimAt(FVector HitLocation, float LaunchSpeed) {
 	if(bHaveAimSolution){
 		auto AimDirection = OutLaunchVelocity.GetSafeNormal();
 		auto TankName = GetOwner()->GetName();
-		UE_LOG(LogTemp, Warning, TEXT("%s Aiming at %s"), *TankName, *AimDirection.ToString());
+		
+		//Given a max elevation speed, and the frame time
+		auto Time = GetWorld()->GetTimeSeconds();
+		UE_LOG(LogTemp, Warning, TEXT("%f: Aim Solution found"), Time);
+
 		MoveTowardsBarrel(AimDirection);
+	}
+	else {
+		//Given a max elevation speed, and the frame time
+		auto Time = GetWorld()->GetTimeSeconds();
+		UE_LOG(LogTemp, Warning, TEXT("%f: no solution found at this time."), Time);
 	}
 	//if no solution do nothing
 	
@@ -51,8 +62,7 @@ void UTankAimingComponet::MoveTowardsBarrel(FVector AimDirection) {
 	auto AimAsRotator = AimDirection.Rotation();
 	auto DeltaRotator = AimAsRotator - BarrelRotator;
 
-	UE_LOG(LogTemp, Warning, TEXT("Aim As Rotator: %s"), *DeltaRotator.ToString());
-	//Move the Barrel to the right amount this frame
+	
 
-	//Given a max elevation speed, and the frame time
+	Barrel->Elevate(5);//TODO: Remove Magic Number
 }
