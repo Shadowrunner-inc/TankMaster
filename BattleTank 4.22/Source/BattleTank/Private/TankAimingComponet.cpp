@@ -2,6 +2,7 @@
 
 #include "TankBarrel.h"
 #include "TankAimingComponet.h"
+#include <Runtime\Engine\Classes\Kismet\GameplayStatics.h>
 
 // Sets default values for this component's properties
 UTankAimingComponet::UTankAimingComponet()
@@ -33,7 +34,10 @@ void UTankAimingComponet::AimAt(FVector HitLocation, float LaunchSpeed) {
 		StartLocation,
 		HitLocation,
 		LaunchSpeed,
-		ESuggestProjVelocityTraceOption::DoNotTrace
+		false,
+		0,
+		0,
+		ESuggestProjVelocityTraceOption::DoNotTrace //Paramater must be present to prevent bug
 	);
 	
 		//Cal Out launchVelocity
@@ -43,9 +47,10 @@ void UTankAimingComponet::AimAt(FVector HitLocation, float LaunchSpeed) {
 		
 		//Given a max elevation speed, and the frame time
 		auto Time = GetWorld()->GetTimeSeconds();
-		UE_LOG(LogTemp, Warning, TEXT("%f: Aim Solution found"), Time);
+		//UE_LOG(LogTemp, Warning, TEXT("%f: Aim Solution found"), Time);
 
 		MoveTowardsBarrel(AimDirection);
+
 	}
 	else {
 		//Given a max elevation speed, and the frame time
@@ -61,8 +66,6 @@ void UTankAimingComponet::MoveTowardsBarrel(FVector AimDirection) {
 	auto BarrelRotator = Barrel->GetForwardVector().Rotation();
 	auto AimAsRotator = AimDirection.Rotation();
 	auto DeltaRotator = AimAsRotator - BarrelRotator;
-
-	
-
-	Barrel->Elevate(5);//TODO: Remove Magic Number
+		
+	Barrel->Elevate(DeltaRotator.Pitch);//TODO: Remove Magic Number
 }
